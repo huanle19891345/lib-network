@@ -3,6 +3,7 @@ package com.pince.network.converter;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
+import com.pince.network.ServerConfig;
 
 import org.json.JSONObject;
 
@@ -12,13 +13,11 @@ import java.util.Map;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
 
+
 class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
 
     private final Gson gson;
     private final TypeAdapter<T> adapter;
-    private static final String CODE = "code";
-    private static final String MSG = "message";
-    private static final String DATA = "data";
 
     CustomResponseConverter(Gson gson, TypeAdapter<T> adapter) {
         this.gson = gson;
@@ -30,12 +29,27 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
         try {
             String body = value.string();
             JSONObject json = new JSONObject(body);
-            int code = json.optInt(CODE);
-            if (json.has(DATA)) {
-                Object dataObject = json.optJSONObject(DATA);
-//            body = gson.toJson(dataObject);
-                return adapter.fromJson(dataObject.toString());
-            } else {//如果接口没有返回data字段，则返回默认的json
+            String codeKey = ServerConfig.getInstance().getCodeKey();
+            if (json.has(codeKey)) {
+                int code = json.optInt(codeKey);
+                if (code == ServerConfig.getInstance().getCodeValid()) {
+                    String dataKey = ServerConfig.getInstance().getDataKey();
+                    if (json.has(dataKey)) {
+                        Object dataObject = json.optJSONObject(dataKey);
+                         // body = gson.toJson(dataObject);
+                        return adapter.fromJson(dataObject.toString());
+                    } else {//如果接口没有返回data字段，则返回默认的json
+                        return adapter.fromJson(body);
+                    }
+                } else {
+                    String messageKey = ServerConfig.getInstance().getMsgKey();
+                    StringBuilder exceptionValue  = new StringBuilder()
+                           .append(code)
+                           .append(",")
+                           .append(json.has(messageKey) ? json.optString(messageKey) : "");
+                   throw new RuntimeException(exceptionValue.toString());
+                }
+            } else {
                 return adapter.fromJson(body);
             }
         } catch (Exception e) {
