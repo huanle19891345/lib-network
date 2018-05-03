@@ -5,7 +5,8 @@
 
 
 
-# 用法:  
+# 用法:  
+最新版  ![](https://jitpack.io/v/huanle19891345/lib-network.svg)
 
 1. Add it in your root build.gradle at the end of repositories:
 ```
