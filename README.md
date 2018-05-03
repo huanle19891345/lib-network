@@ -7,6 +7,25 @@
 
 # 用法:  
 
+1. Add it in your root build.gradle at the end of repositories:
+```
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+2. Add the dependency
+```
+	dependencies {
+	        implementation 'com.github.huanle19891345:lib-network:v{x.y,z}' //x y z is the lastest version name
+	}
+
+```
+
+3. Usage in your code:(You can reference the app module sample usage code)
 ```
  初始化:
           RetrofitManager.okHttpBuilder()  
