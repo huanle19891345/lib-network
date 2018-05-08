@@ -16,7 +16,7 @@ public class ServerConfig {
     private String codeKey = "code";
     private String msgKey = "message";
     private String dataKey = "data";
-    private int codeValid = 200;
+    private int codeValid = 0;
 
     public String getCodeKey() {
         return codeKey;
