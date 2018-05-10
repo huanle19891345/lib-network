@@ -56,7 +56,7 @@ public class OkHttpWrapper {
 
         public OkHttpWrapper build() {
             logInterceptor = new HttpLoggingInterceptor()
-                    .setLevel(logEnable ? HttpLoggingInterceptor.Level.HEADERS : HttpLoggingInterceptor.Level.NONE);
+                    .setLevel(logEnable ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.NONE);
             headerInterceptor = new Interceptor() {
                 @Override
                 public Response intercept(Chain chain) throws IOException {
