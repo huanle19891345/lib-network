@@ -2,13 +2,12 @@ package com.pince.network.converter;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
-import com.google.gson.reflect.TypeToken;
 import com.pince.network.ServerConfig;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Map;
 
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
@@ -35,19 +34,22 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
                 if (code == ServerConfig.getInstance().getCodeValid()) {
                     String dataKey = ServerConfig.getInstance().getDataKey();
                     if (json.has(dataKey)) {
-                        Object dataObject = json.optJSONObject(dataKey);
-                         // body = gson.toJson(dataObject);
-                        return adapter.fromJson(dataObject.toString());
+                        Object data = json.opt(dataKey);
+                        if (data instanceof JSONObject) {
+                            // body = gson.toJson(dataObject);
+                        } else if (data instanceof JSONArray) {
+                        }
+                        return adapter.fromJson(data.toString());
                     } else {//如果接口没有返回data字段，则返回默认的json
                         return adapter.fromJson(body);
                     }
                 } else {
                     String messageKey = ServerConfig.getInstance().getMsgKey();
-                    StringBuilder exceptionValue  = new StringBuilder()
-                           .append(code)
-                           .append(",")
-                           .append(json.has(messageKey) ? json.optString(messageKey) : "");
-                   throw new RuntimeException(exceptionValue.toString());
+                    StringBuilder exceptionValue = new StringBuilder()
+                            .append(code)
+                            .append(",")
+                            .append(json.has(messageKey) ? json.optString(messageKey) : "");
+                    throw new RuntimeException(exceptionValue.toString());
                 }
             } else {
                 return adapter.fromJson(body);
