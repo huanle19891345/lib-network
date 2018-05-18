@@ -12,7 +12,7 @@ class HeaderInterceptor(headerParams: Map<String, String>): Interceptor {
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val request = if (null == mHeadParams) chain.request() else addHeader(chain.request(), mHeadParams)
+        val request = if (null == mHeadParams || mHeadParams.size == 0) chain.request() else addHeader(chain.request(), mHeadParams)
         return chain.proceed(request)
     }
 

@@ -7,6 +7,7 @@ import com.pince.network.interceptor.HeaderInterceptor;
 import com.pince.network.interceptor.ReceivedCookiesInterceptor;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -40,7 +41,7 @@ public class OkHttpWrapper {
     public static class Builder {
         private Context context;
         private boolean logEnable;
-        private Map<String, String> headerParams;
+        private Map<String, String> headerParams = new HashMap<>();
 
         private Interceptor logInterceptor;
         private OkHttpClient client;
