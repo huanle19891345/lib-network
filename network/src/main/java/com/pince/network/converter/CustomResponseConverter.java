@@ -37,7 +37,15 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
                         Object data = json.opt(dataKey);
                         if (data instanceof JSONObject) {
                             // body = gson.toJson(dataObject);
+                            JSONObject jsonObjectData = (JSONObject)data;
+                            if (jsonObjectData.length() == 0) {
+                                return null;
+                            }
                         } else if (data instanceof JSONArray) {
+                            JSONArray jsonArrayData = (JSONArray) data;
+                            if (jsonArrayData.length() == 0) {
+                                return null;
+                            }
                         }
                         return adapter.fromJson(data.toString());
                     } else {//如果接口没有返回data字段，则返回默认的json
