@@ -1,13 +1,15 @@
 package com.pince.network;
 
+import android.content.Context;
+
 import retrofit2.Converter;
 
 public class RetrofitManager {
 
     public static Converter responseConverter;
 
-    public static OkHttpWrapper.Builder okHttpBuilder() {
-        return OkHttpWrapper.builder();
+    public static OkHttpWrapper.Builder okHttpBuilder(Context context) {
+        return OkHttpWrapper.builder(context);
     }
 
     public static <T> T getService(Class<T> tClass) {

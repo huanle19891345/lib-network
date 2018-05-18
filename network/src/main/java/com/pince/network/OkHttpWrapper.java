@@ -1,5 +1,11 @@
 package com.pince.network;
 
+import android.content.Context;
+
+import com.pince.network.interceptor.AddCookiesInterceptor;
+import com.pince.network.interceptor.HeaderInterceptor;
+import com.pince.network.interceptor.ReceivedCookiesInterceptor;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,14 +21,10 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttpWrapper {
 
-    private Interceptor logInterceptor;
-    private Interceptor headerInterceptor;
     private OkHttpClient client;
 
 
     public OkHttpWrapper(Builder builder) {
-        this.logInterceptor = builder.logInterceptor;
-        this.headerInterceptor = builder.headerInterceptor;
         this.client = builder.client;
     }
 
@@ -31,18 +33,21 @@ public class OkHttpWrapper {
     }
 
 
-    public static Builder builder(){
-        return new OkHttpWrapper.Builder();
+    public static Builder builder(Context context){
+        return new OkHttpWrapper.Builder(context);
     }
 
     public static class Builder {
+        private Context context;
         private boolean logEnable;
         private Map<String, String> headerParams;
 
         private Interceptor logInterceptor;
-        private Interceptor headerInterceptor;
         private OkHttpClient client;
 
+        Builder(Context context) {
+            this.context = context;
+        }
 
         public Builder setLogEnable(boolean logEnable) {
             this.logEnable = logEnable;
@@ -57,16 +62,12 @@ public class OkHttpWrapper {
         public OkHttpWrapper build() {
             logInterceptor = new HttpLoggingInterceptor()
                     .setLevel(logEnable ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.NONE);
-            headerInterceptor = new Interceptor() {
-                @Override
-                public Response intercept(Chain chain) throws IOException {
-                    Request request = (null == headerParams) ? chain.request() : addHeader(chain.request(), headerParams);
-                    return chain.proceed(request);
-                }
-            };
+
             client = new OkHttpClient.Builder()
                     .addInterceptor(logInterceptor)
-                    .addNetworkInterceptor(headerInterceptor)
+                    .addNetworkInterceptor(new HeaderInterceptor(headerParams))
+                    .addInterceptor(new ReceivedCookiesInterceptor(context))
+                    .addInterceptor(new AddCookiesInterceptor(context))
                     .connectTimeout(10, TimeUnit.SECONDS)
                     .build();
 
@@ -76,19 +77,6 @@ public class OkHttpWrapper {
         public RetrofitWrapper.Builder retrofitBuilder(String baseUrl) {
             return new RetrofitWrapper.Builder(baseUrl).setOkHttpWrapper(build());
         }
-    }
-
-
-    private static Request addHeader(Request original, Map<String, String> headerParams) {
-        Request.Builder builder = original.newBuilder();
-        Set<Map.Entry<String, String>> items = headerParams.entrySet();
-        Iterator iterator = items.iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, String> item = (Map.Entry<String, String>) iterator.next();
-            builder.header(item.getKey(), item.getValue());
-        }
-        return builder.method(original.method(), original.body())
-                .build();
     }
 
 
