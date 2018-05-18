@@ -39,12 +39,12 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
                             // body = gson.toJson(dataObject);
                             JSONObject jsonObjectData = (JSONObject)data;
                             if (jsonObjectData.length() == 0) {
-                                return null;
+                                //正常返回没有数据的接口时，使用String进行接收
+                                return (T) "";
                             }
                         } else if (data instanceof JSONArray) {
                             JSONArray jsonArrayData = (JSONArray) data;
                             if (jsonArrayData.length() == 0) {
-                                return null;
                             }
                         }
                         return adapter.fromJson(data.toString());
