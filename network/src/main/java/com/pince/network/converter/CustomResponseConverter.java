@@ -3,6 +3,7 @@ package com.pince.network.converter;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.pince.network.ServerConfig;
+import com.pince.network.util.TypeUtil;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -42,10 +43,10 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
                                 //正常返回没有数据的接口时，使用String进行接收
                                 return (T) "";
                             }
-                        } else if (data instanceof JSONArray) {
-                            JSONArray jsonArrayData = (JSONArray) data;
-                            if (jsonArrayData.length() == 0) {
-                            }
+                        }
+                        if (TypeUtil.INSTANCE.findParamsTypeClass(adapter.getClass()).getSimpleName().contains("String")) {
+                            //如果就是需要String类型的服务端返回数据
+                            return (T) data.toString();
                         }
                         return adapter.fromJson(data.toString());
                     } else {//如果接口没有返回data字段，则返回默认的json
