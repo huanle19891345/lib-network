@@ -2,13 +2,13 @@ package com.pince.network.converter;
 
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
 import com.pince.network.ServerConfig;
-import com.pince.network.util.TypeUtil;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
@@ -18,10 +18,13 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
 
     private final Gson gson;
     private final TypeAdapter<T> adapter;
+    private final Type modelType;
 
-    CustomResponseConverter(Gson gson, TypeAdapter<T> adapter) {
+
+    CustomResponseConverter(Gson gson, Type type) {
         this.gson = gson;
-        this.adapter = adapter;
+        this.adapter = (TypeAdapter<T>) gson.getAdapter(TypeToken.get(type));
+        this.modelType = type;
     }
 
     @Override
@@ -36,17 +39,18 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
                     String dataKey = ServerConfig.getInstance().getDataKey();
                     if (json.has(dataKey)) {
                         Object data = json.opt(dataKey);
+                        if (isModelTypeString()) {
+                            //如果就是需要String类型的服务端返回数据
+                            return (T) data.toString();
+                        }
+
                         if (data instanceof JSONObject) {
                             // body = gson.toJson(dataObject);
                             JSONObject jsonObjectData = (JSONObject)data;
-                            if (jsonObjectData.length() == 0) {
+                            if (jsonObjectData.length() == 0 && isModelTypeString()) {
                                 //正常返回没有数据的接口时，使用String进行接收
                                 return (T) "";
                             }
-                        }
-                        if (TypeUtil.INSTANCE.findParamsTypeClass(adapter.getClass()).getSimpleName().contains("String")) {
-                            //如果就是需要String类型的服务端返回数据
-                            return (T) data.toString();
                         }
                         return adapter.fromJson(data.toString());
                     } else {//如果接口没有返回data字段，则返回默认的json
@@ -68,5 +72,10 @@ class CustomResponseConverter<T> implements Converter<ResponseBody, T> {
         } finally {
             value.close();
         }
+    }
+
+    private boolean isModelTypeString() {
+        return modelType instanceof Class &&
+                ((Class) modelType).getName().equals("java.lang.String");
     }
 }

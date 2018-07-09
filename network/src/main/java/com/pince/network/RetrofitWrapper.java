@@ -19,17 +19,21 @@ public class RetrofitWrapper {
 
     private static Retrofit retrofit;
 
-
     public static Retrofit getRetrofit() {
         return retrofit;
+    }
+
+    public static Builder builder(String baseUrl, OkHttpWrapper okHttpWrapper) {
+        return new Builder(baseUrl, okHttpWrapper);
     }
 
     public static class Builder {
         private String baseUrl;
         private OkHttpWrapper okHttpWrapper;
 
-        public Builder(String baseUrl) {
+        public Builder(String baseUrl, OkHttpWrapper okHttpWrapper) {
             this.baseUrl = baseUrl;
+            this.okHttpWrapper = okHttpWrapper;
         }
 
         public String getBaseUrl() {
@@ -38,11 +42,6 @@ public class RetrofitWrapper {
 
         public OkHttpWrapper getOkHttpWrapper() {
             return okHttpWrapper;
-        }
-
-        public Builder setOkHttpWrapper(OkHttpWrapper okHttpWrapper) {
-            this.okHttpWrapper = okHttpWrapper;
-            return this;
         }
 
         public void build() {

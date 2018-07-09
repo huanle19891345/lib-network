@@ -22,63 +22,58 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttpWrapper {
 
-    private OkHttpClient client;
-
+    private Builder mBuilder;
 
     public OkHttpWrapper(Builder builder) {
-        this.client = builder.client;
+        mBuilder = builder;
     }
 
     public OkHttpClient getClient() {
-        return client;
+        return mBuilder.client;
     }
 
-
     public static Builder builder(Context context){
-        return new OkHttpWrapper.Builder(context);
+        return new Builder(context);
     }
 
     public static class Builder {
-        private Context context;
-        private boolean logEnable;
-        private Map<String, String> headerParams = new HashMap<>();
+        private HttpLoggingInterceptor logInterceptor = new HttpLoggingInterceptor();
+        private HeaderInterceptor headerInterceptor = new HeaderInterceptor();
 
-        private Interceptor logInterceptor;
+        private OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         private OkHttpClient client;
 
         Builder(Context context) {
-            this.context = context;
+            clientBuilder.addInterceptor(logInterceptor)
+                    .addNetworkInterceptor(headerInterceptor)
+                    .addInterceptor(new ReceivedCookiesInterceptor(context))
+                    .addInterceptor(new AddCookiesInterceptor(context))
+                    .connectTimeout(10, TimeUnit.SECONDS);
         }
 
         public Builder setLogEnable(boolean logEnable) {
-            this.logEnable = logEnable;
+            logInterceptor.setLevel(logEnable ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.NONE);
             return this;
         }
 
         public Builder setHeaderParams(Map<String, String> headerParams) {
-            this.headerParams = headerParams;
+            headerInterceptor.setMHeadParams(headerParams);
+            return this;
+        }
+
+        public Builder addInterceptor(Interceptor interceptor) {
+            clientBuilder.addInterceptor(interceptor);
             return this;
         }
 
         public OkHttpWrapper build() {
-            logInterceptor = new HttpLoggingInterceptor()
-                    .setLevel(logEnable ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.NONE);
-
-            client = new OkHttpClient.Builder()
-                    .addInterceptor(logInterceptor)
-                    .addNetworkInterceptor(new HeaderInterceptor(headerParams))
-                    .addInterceptor(new ReceivedCookiesInterceptor(context))
-                    .addInterceptor(new AddCookiesInterceptor(context))
-                    .connectTimeout(10, TimeUnit.SECONDS)
-                    .build();
-
+            client = clientBuilder.build();
             return new OkHttpWrapper(this);
         }
 
         public RetrofitWrapper.Builder retrofitBuilder(String baseUrl) {
-            return new RetrofitWrapper.Builder(baseUrl).setOkHttpWrapper(build());
+            return RetrofitWrapper.builder(baseUrl, build());
         }
     }
-
 
 }
