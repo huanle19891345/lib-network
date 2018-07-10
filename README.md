@@ -47,5 +47,18 @@ lastest  ![](https://jitpack.io/v/huanle19891345/lib-network.svg)
                  });  
 ```
 
-- provide interceptters and converters helpter class for easy use
-
+- provide 
+```
+interceptters 
+   AddCookiesIntercepteor
+   ReceivedCookiesIntercepter
+   HeaderInterceptor
+```
+```
+ converter:
+    CustomConverterFactory
+```
+```
+ adapter:
+    RxThreadCallAdapter
+```
